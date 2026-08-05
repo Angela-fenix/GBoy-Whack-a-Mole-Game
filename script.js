@@ -36,6 +36,8 @@ const settingsOverlay = document.getElementById('settingsOverlay');
 const closeSettingsBtn = document.getElementById('closeSettingsBtn');
 const applyImgBtn = document.getElementById('applyImgBtn');
 const resetImgBtn = document.getElementById('resetImgBtn');
+const durationInput = document.getElementById('durationInput');
+const applyDurationBtn = document.getElementById('applyDurationBtn');
 const debugToggleBtn = document.getElementById('debugToggleBtn');
 const imgInputs = {
   plus1: document.getElementById('plus1ImgUrl'),
@@ -368,12 +370,13 @@ debugToggleBtn.addEventListener('click', ()=>{
   }
 });
 
-/* 自訂圖片彈出視窗 */
+/* Debug 設定彈出視窗 */
 settingsBtn.addEventListener('click', () => {
   imgInputs.plus1.value = typeById('plus1').image;
   imgInputs.plus2.value = typeById('plus2').image;
   imgInputs.minus1.value = typeById('minus1').image;
   imgInputs.minus2.value = typeById('minus2').image;
+  durationInput.value = CONFIG.gameSeconds;
   settingsOverlay.classList.remove('hidden');
 });
 closeSettingsBtn.addEventListener('click', () => {
@@ -390,6 +393,19 @@ resetImgBtn.addEventListener('click', () => {
   CONFIG.targetTypes.forEach(t => t.image = '');
   Object.values(imgInputs).forEach(inp => inp.value = '');
   buildLegend();
+});
+applyDurationBtn.addEventListener('click', ()=>{
+  const val = parseInt(durationInput.value, 10);
+  if(!Number.isFinite(val) || val < 5 || val > 600){
+    window.alert('請輸入 5～600 之間的整數秒數');
+    return;
+  }
+  CONFIG.gameSeconds = val;
+  if(!running){
+    timeLeft = CONFIG.gameSeconds;
+    timeVal.textContent = timeLeft;
+  }
+  window.alert('遊戲時間已設定為 ' + val + ' 秒，切換回一般模式後也會套用這個時間唷！');
 });
 
 /* 演唱會場景裝飾：星光與五彩紙屑 */

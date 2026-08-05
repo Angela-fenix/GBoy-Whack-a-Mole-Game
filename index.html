@@ -1,96 +1,97 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
-
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport"
-    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>🎤 打地鼠演唱會</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link
-    href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800&display=swap"
-    rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>🎤 打地鼠演唱會</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 
-  <div class="viewport" id="viewportEl">
-    <div class="stage-bg" id="stageBg">
-      <div class="beam b1"></div>
-      <div class="beam b2"></div>
-      <div class="beam b3"></div>
-      <div class="disco"></div>
-      <div class="crowd"></div>
-    </div>
-
-    <div id="stageRoot">
-      <div class="wrap">
-        <h1>🎤 打地鼠演唱會</h1>
-
-        <div class="hud">
-          <div class="pill"><span class="label">分數</span><span id="scoreVal">0</span></div>
-          <div class="pill time"><span class="label">時間</span><span id="timeVal">60</span></div>
-          <div class="pill"><span class="label">速度</span><span id="speedVal">x1.0</span></div>
-        </div>
-
-        <div class="legend" id="legend"></div>
-
-        <div class="board" id="board">
-          <div class="footlights" id="footlights"></div>
-        </div>
-
-        <div class="controls">
-          <button class="mainbtn" id="startBtn">開始表演</button>
-          <button class="ghost" id="settingsBtn">🖼️ 自訂圖片</button>
-        </div>
-      </div>
-    </div>
+<div class="viewport" id="viewportEl">
+  <div class="stage-bg" id="stageBg">
+    <div class="beam b1"></div>
+    <div class="beam b2"></div>
+    <div class="beam b3"></div>
+    <div class="disco"></div>
+    <div class="crowd"></div>
   </div>
 
-  <div class="hammer" id="hammer">
-    <img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Hammer/3D/hammer_3d.png" alt=""
-      onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-    <span class="emoji-fallback-hammer">🔨</span>
-  </div>
+  <div id="stageRoot">
+    <div class="wrap">
+      <h1>🎤 打地鼠演唱會</h1>
 
-  <button class="debug-toggle" id="debugToggleBtn" title="debug">⚙</button>
+      <div class="hud">
+        <div class="pill"><span class="label">分數</span><span id="scoreVal">0</span></div>
+        <div class="pill time"><span class="label">時間</span><span id="timeVal">60</span></div>
+        <div class="pill"><span class="label">速度</span><span id="speedVal">x1.0</span></div>
+      </div>
 
-  <div class="overlay hidden" id="overlay">
-    <div class="modal">
-      <h2>演出結束！</h2>
-      <p>你的最終成績</p>
-      <div class="finalScore" id="finalScore">0</div>
-      <div class="hitStats" id="hitStats"></div>
-      <button class="mainbtn" id="playAgainBtn">再表演一次</button>
+      <div class="legend" id="legend"></div>
+
+      <div class="board" id="board">
+        <div class="footlights" id="footlights"></div>
+      </div>
+
+      <div class="controls">
+        <button class="mainbtn" id="startBtn">開始表演</button>
+        <button class="ghost" id="settingsBtn">⚙️ Debug 設定</button>
+      </div>
     </div>
   </div>
+</div>
 
-  <div class="overlay hidden" id="settingsOverlay">
-    <div class="modal settings-modal">
-      <h2>🖼️ 自訂目標圖片</h2>
-      <div class="row">
-        <div><label>🐹 +1 目標圖片網址<input type="text" id="plus1ImgUrl" placeholder="https://.../hamster.png"></label></div>
-        <div><label>🐰 +2 目標圖片網址<input type="text" id="plus2ImgUrl" placeholder="https://.../bunny.png"></label></div>
-      </div>
-      <div class="row">
-        <div><label>🦔 -1 目標圖片網址<input type="text" id="minus1ImgUrl" placeholder="https://.../hedgehog.png"></label>
-        </div>
-        <div><label>💣 -2 目標圖片網址<input type="text" id="minus2ImgUrl" placeholder="https://.../bomb.png"></label></div>
-      </div>
-      <div class="btnrow">
-        <button class="ghost" id="applyImgBtn">套用圖片</button>
-        <button class="ghost" id="resetImgBtn">還原成 Emoji</button>
-      </div>
-      <div class="btnrow">
-        <button class="mainbtn" id="closeSettingsBtn" style="width:100%;">關閉</button>
-      </div>
-      <small>提示：也可以直接修改程式碼上方的 CONFIG.targetTypes，把每種目標的 image 欄位填入圖片路徑（例如 "images/bunny.png"），發佈到 GitHub 時把圖片一起放進 repo
-        即可。</small>
-    </div>
+<div class="hammer" id="hammer">
+  <img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Hammer/3D/hammer_3d.png" alt="" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+  <span class="emoji-fallback-hammer">🔨</span>
+</div>
+
+<button class="debug-toggle" id="debugToggleBtn" title="debug">⚙</button>
+
+<div class="overlay hidden" id="overlay">
+  <div class="modal">
+    <h2>演出結束！</h2>
+    <p>你的最終成績</p>
+    <div class="finalScore" id="finalScore">0</div>
+    <div class="hitStats" id="hitStats"></div>
+    <button class="mainbtn" id="playAgainBtn">再表演一次</button>
   </div>
+</div>
 
-  <script src="script.js"></script>
+<div class="overlay hidden" id="settingsOverlay">
+  <div class="modal settings-modal">
+    <h2>⚙️ Debug 設定</h2>
+
+    <label>⏱️ 遊戲時間（秒）
+      <input type="number" id="durationInput" min="5" max="600" step="1" placeholder="60">
+    </label>
+    <div class="btnrow">
+      <button class="ghost" id="applyDurationBtn" style="width:100%;">套用時間</button>
+    </div>
+
+    <hr class="divider">
+
+    <div class="row">
+      <div><label>🐹 +1 目標圖片網址<input type="text" id="plus1ImgUrl" placeholder="https://.../hamster.png"></label></div>
+      <div><label>🐰 +2 目標圖片網址<input type="text" id="plus2ImgUrl" placeholder="https://.../bunny.png"></label></div>
+    </div>
+    <div class="row">
+      <div><label>🦔 -1 目標圖片網址<input type="text" id="minus1ImgUrl" placeholder="https://.../hedgehog.png"></label></div>
+      <div><label>💣 -2 目標圖片網址<input type="text" id="minus2ImgUrl" placeholder="https://.../bomb.png"></label></div>
+    </div>
+    <div class="btnrow">
+      <button class="ghost" id="applyImgBtn">套用圖片</button>
+      <button class="ghost" id="resetImgBtn">還原成 Emoji</button>
+    </div>
+    <div class="btnrow">
+      <button class="mainbtn" id="closeSettingsBtn" style="width:100%;">關閉</button>
+    </div>
+    <small>提示：也可以直接修改程式碼上方的 CONFIG.targetTypes / CONFIG.gameSeconds，發佈到 GitHub 時把圖片一起放進 repo 即可。</small>
+  </div>
+</div>
+
+<script src="script.js"></script>
 </body>
-
 </html>
