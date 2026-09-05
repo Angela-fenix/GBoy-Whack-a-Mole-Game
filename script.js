@@ -6,7 +6,7 @@ const CONFIG = {
   holeCount: 9,
   baseUpTime: 900,
   baseSpawnGap: 850,
-  speedStepScore: 5,
+  speedStepScore: 3,
   speedFactorPerStep: 0.90,
   targetTypes: [
     // { id: 'plus1', points: 1, emoji: '🐹', image: 'https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Hamster/3D/hamster_3d.png', weight: 45, badge: '+1' },
