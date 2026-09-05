@@ -2,17 +2,21 @@
    可自行調整的設定區
    ======================================================== */
 const CONFIG = {
-  gameSeconds: 60,
+  gameSeconds: 30,
   holeCount: 9,
   baseUpTime: 900,
   baseSpawnGap: 850,
   speedStepScore: 5,
   speedFactorPerStep: 0.90,
   targetTypes: [
-    { id: 'plus1', points: 1, emoji: '🐹', image: 'https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Hamster/3D/hamster_3d.png', weight: 45, badge: '+1' },
-    { id: 'plus2', points: 2, emoji: '🐰', image: 'https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Rabbit/3D/rabbit_3d.png', weight: 15, badge: '+2' },
-    { id: 'minus1', points: -1, emoji: '🦔', image: 'https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Hedgehog/3D/hedgehog_3d.png', weight: 25, badge: '-1' },
-    { id: 'minus2', points: -2, emoji: '💣', image: 'https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Bomb/3D/bomb_3d.png', weight: 15, badge: '-2' },
+    // { id: 'plus1', points: 1, emoji: '🐹', image: 'https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Hamster/3D/hamster_3d.png', weight: 45, badge: '+1' },
+    // { id: 'plus2', points: 2, emoji: '🐰', image: 'https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Rabbit/3D/rabbit_3d.png', weight: 15, badge: '+2' },
+    // { id: 'minus1', points: -1, emoji: '🦔', image: 'https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Hedgehog/3D/hedgehog_3d.png', weight: 25, badge: '-1' },
+    // { id: 'minus2', points: -2, emoji: '💣', image: 'https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Bomb/3D/bomb_3d.png', weight: 15, badge: '-2' },
+    { id: 'plus1', points: 1, emoji: '🧒', image: 'assets/gboy.png', weight: 45, badge: '+1' },
+    { id: 'plus2', points: 2, emoji: '☀️', image: 'assets/gboy_plus.png', weight: 15, badge: '+2' },
+    { id: 'minus1', points: -1, emoji: '🫧', image: 'assets/deduct_1.png', weight: 25, badge: '-1' },
+    { id: 'minus2', points: -2, emoji: '☂️', image: 'assets/deduct_2.png', weight: 15, badge: '-2' },
   ]
 };
 
@@ -215,9 +219,9 @@ function scheduleNext() {
   spawnTimeoutId = setTimeout(popUp, gap * (0.6 + Math.random() * 0.8));
 }
 
-function renderHitStats(){
+function renderHitStats() {
   hitStats.innerHTML = '';
-  CONFIG.targetTypes.forEach(t=>{
+  CONFIG.targetTypes.forEach(t => {
     const item = document.createElement('div');
     item.className = 'hitStat ' + t.id;
     const icon = document.createElement('div');
@@ -353,16 +357,16 @@ requestAnimationFrame(fitToScreen);
 setTimeout(fitToScreen, 300); // 字型載入後再校正一次
 
 /* debug 模式切換：輸入密碼正確才會開啟/關閉，自訂圖片按鈕僅在 debug 模式下顯示 */
-debugToggleBtn.addEventListener('click', ()=>{
-  if(debugMode){
+debugToggleBtn.addEventListener('click', () => {
+  if (debugMode) {
     debugMode = false;
     document.body.classList.remove('debug-mode');
     settingsOverlay.classList.add('hidden');
     return;
   }
   const input = window.prompt('請輸入 debug 模式密碼：');
-  if(input === null) return;
-  if(input === DEBUG_PASSWORD){
+  if (input === null) return;
+  if (input === DEBUG_PASSWORD) {
     debugMode = true;
     document.body.classList.add('debug-mode');
   } else {
@@ -394,21 +398,21 @@ resetImgBtn.addEventListener('click', () => {
   Object.values(imgInputs).forEach(inp => inp.value = '');
   buildLegend();
 });
-applyDurationBtn.addEventListener('click', ()=>{
+applyDurationBtn.addEventListener('click', () => {
   const val = parseInt(durationInput.value, 10);
-  if(!Number.isFinite(val) || val < 5 || val > 600){
+  if (!Number.isFinite(val) || val < 5 || val > 600) {
     window.alert('請輸入 5～600 之間的整數秒數');
     return;
   }
   CONFIG.gameSeconds = val;
-  if(!running){
+  if (!running) {
     timeLeft = CONFIG.gameSeconds;
     timeVal.textContent = timeLeft;
   }
   window.alert('遊戲時間已設定為 ' + val + ' 秒，切換回一般模式後也會套用這個時間唷！');
 });
 
-/* 演唱會場景裝飾：星光與五彩紙屑 */
+/* 夏日海島場景裝飾：陽光星光與隨風飄起的泡泡 */
 (function makeStageDecor() {
   const stage = document.getElementById('stageBg');
   const sparklePositions = [
@@ -425,15 +429,19 @@ applyDurationBtn.addEventListener('click', ()=>{
     stage.appendChild(el);
   });
 
-  const colors = ['#ff4fd8', '#4ff0ff', '#ffe066', '#8bff8b', '#c99bff'];
-  for (let i = 0; i < 18; i++) {
+  // const colors = ['#ff4fd8', '#4ff0ff', '#ffe066', '#8bff8b', '#c99bff'];
+  for (let i = 0; i < 16; i++) {
     const c = document.createElement('div');
     c.className = 'confetti';
     c.style.left = Math.random() * 100 + '%';
-    c.style.background = colors[i % colors.length];
-    c.style.animationDuration = (5 + Math.random() * 5) + 's';
-    c.style.animationDelay = (Math.random() * 6) + 's';
-    c.style.transform = `scale(${0.6 + Math.random() * 0.7})`;
+    // c.style.background = colors[i % colors.length];
+    // c.style.animationDuration = (5 + Math.random() * 5) + 's';
+    // c.style.animationDelay = (Math.random() * 6) + 's';
+    // c.style.transform = `scale(${0.6 + Math.random() * 0.7})`;
+
+    c.style.animationDuration = (6 + Math.random() * 6) + 's';
+    c.style.animationDelay = (Math.random() * 7) + 's';
+    c.style.transform = `scale(${0.6 + Math.random() * 1.1})`;
     stage.appendChild(c);
   }
 })();
