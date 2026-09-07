@@ -2,17 +2,17 @@
    可自行調整的設定區
    ======================================================== */
 const CONFIG = {
-  gameSeconds: 60,
+  gameSeconds: 30,
   holeCount: 9,
   baseUpTime: 900,
   baseSpawnGap: 850,
-  speedStepScore: 5,
+  speedStepScore: 3,
   speedFactorPerStep: 0.90,
   targetTypes: [
-    { id: 'plus1', points: 1, emoji: '🐹', image: 'https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Hamster/3D/hamster_3d.png', weight: 45, badge: '+1' },
-    { id: 'plus2', points: 2, emoji: '🐰', image: 'https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Rabbit/3D/rabbit_3d.png', weight: 15, badge: '+2' },
-    { id: 'minus1', points: -1, emoji: '🦔', image: 'https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Hedgehog/3D/hedgehog_3d.png', weight: 25, badge: '-1' },
-    { id: 'minus2', points: -2, emoji: '💣', image: 'https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Bomb/3D/bomb_3d.png', weight: 15, badge: '-2' },
+    { id: 'plus1', points: 1, emoji: '🧒', image: 'assets/gboy.png', weight: 45, badge: '+1' },
+    { id: 'plus2', points: 2, emoji: '☀️', image: 'assets/gboy_plus.png', weight: 15, badge: '+2' },
+    { id: 'minus1', points: -1, emoji: '🫧', image: 'assets/deduct_1.png', weight: 25, badge: '-1' },
+    { id: 'minus2', points: -2, emoji: '☂️', image: 'assets/deduct_2.png', weight: 15, badge: '-2' },
   ]
 };
 
@@ -31,23 +31,20 @@ const finalScore = document.getElementById('finalScore');
 const hitStats = document.getElementById('hitStats');
 const playAgainBtn = document.getElementById('playAgainBtn');
 const hammer = document.getElementById('hammer');
-const settingsBtn = document.getElementById('settingsBtn');
 const settingsOverlay = document.getElementById('settingsOverlay');
 const closeSettingsBtn = document.getElementById('closeSettingsBtn');
-const applyImgBtn = document.getElementById('applyImgBtn');
-const resetImgBtn = document.getElementById('resetImgBtn');
 const durationInput = document.getElementById('durationInput');
 const applyDurationBtn = document.getElementById('applyDurationBtn');
 const debugToggleBtn = document.getElementById('debugToggleBtn');
-const imgInputs = {
-  plus1: document.getElementById('plus1ImgUrl'),
-  plus2: document.getElementById('plus2ImgUrl'),
-  minus1: document.getElementById('minus1ImgUrl'),
-  minus2: document.getElementById('minus2ImgUrl'),
-};
+const rulesOverlay = document.getElementById('rulesOverlay');
+const rulesGood = document.getElementById('rulesGood');
+const rulesBad = document.getElementById('rulesBad');
+const sfxToggle = document.getElementById('sfxToggle');
+const musicToggle = document.getElementById('musicToggle');
+const bgmAudio = document.getElementById('bgmAudio');
 
-const DEBUG_PASSWORD = 'gboyfenix';
-let debugMode = false;
+let sfxEnabled = true;
+let musicEnabled = true;
 
 let holes = [];
 let score = 0;
@@ -80,6 +77,7 @@ function buildLegend() {
     val.textContent = t.badge;
     item.appendChild(icon);
     item.appendChild(val);
+    item.addEventListener('click', showRules);
     legend.appendChild(item);
   });
 }
@@ -116,6 +114,83 @@ function renderTarget(target, type) {
   target.innerHTML = type.image
     ? `<img src="${type.image}" alt="" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"><span class="emoji-fallback" style="display:none;">${type.emoji}</span>`
     : type.emoji;
+}
+
+/* ===== 遊戲規則彈出視窗：說明哪些是加分項、哪些是扣分項 ===== */
+function buildRuleItem(t) {
+  const item = document.createElement('div');
+  item.className = 'rule-item ' + t.id;
+  const icon = document.createElement('div');
+  icon.className = 'icon';
+  icon.innerHTML = t.image
+    ? `<img src="${t.image}" alt="" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"><span class="emoji-fallback" style="display:none;">${t.emoji}</span>`
+    : t.emoji;
+  const badge = document.createElement('span');
+  badge.className = 'badge';
+  badge.textContent = t.badge + ' 分';
+  item.appendChild(icon);
+  item.appendChild(badge);
+  return item;
+}
+
+function buildRules() {
+  rulesGood.innerHTML = '';
+  rulesBad.innerHTML = '';
+  CONFIG.targetTypes.forEach(t => {
+    const el = buildRuleItem(t);
+    (t.points > 0 ? rulesGood : rulesBad).appendChild(el);
+  });
+}
+
+function showRules() {
+  buildRules();
+  rulesOverlay.classList.remove('hidden');
+}
+
+rulesOverlay.addEventListener('click', () => {
+  rulesOverlay.classList.add('hidden');
+});
+
+/* 一開始開啟網頁就先顯示一次規則說明 */
+showRules();
+
+/* ===== 音效：用 Web Audio API 即時合成，沒有版權問題 ===== */
+let audioCtx = null;
+function getAudioCtx() {
+  if (!audioCtx) {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return null;
+    audioCtx = new AC();
+  }
+  if (audioCtx.state === 'suspended') { audioCtx.resume(); }
+  return audioCtx;
+}
+
+function playTone({ freq = 440, freqEnd = null, duration = 0.18, type = 'sine', volume = 0.22 } = {}) {
+  const ctx = getAudioCtx();
+  if (!ctx) return;
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = type;
+  osc.frequency.setValueAtTime(freq, ctx.currentTime);
+  if (freqEnd) { osc.frequency.exponentialRampToValueAtTime(freqEnd, ctx.currentTime + duration); }
+  gain.gain.setValueAtTime(volume, ctx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+  osc.connect(gain).connect(ctx.destination);
+  osc.start();
+  osc.stop(ctx.currentTime + duration);
+}
+
+/* 打到加分項：清脆上揚音 */
+function playGoodSound() {
+  if (!sfxEnabled) return;
+  playTone({ freq: 523.25, freqEnd: 784, duration: 0.16, type: 'triangle', volume: 0.25 });
+}
+
+/* 打到扣分項：低沉下墜音 */
+function playBadSound() {
+  if (!sfxEnabled) return;
+  playTone({ freq: 200, freqEnd: 90, duration: 0.22, type: 'sawtooth', volume: 0.2 });
 }
 
 function pickType() {
@@ -177,6 +252,8 @@ function onHit(hole, e) {
 
   hole.classList.remove('up');
   hole.classList.add(type.points > 0 ? 'hit' : 'miss');
+  if (type.points > 0) { playGoodSound(); }
+  else { playBadSound(); }
   score = Math.max(0, score + type.points);
 
   hitCounts[type.id] = (hitCounts[type.id] || 0) + 1;
@@ -215,9 +292,9 @@ function scheduleNext() {
   spawnTimeoutId = setTimeout(popUp, gap * (0.6 + Math.random() * 0.8));
 }
 
-function renderHitStats(){
+function renderHitStats() {
   hitStats.innerHTML = '';
-  CONFIG.targetTypes.forEach(t=>{
+  CONFIG.targetTypes.forEach(t => {
     const item = document.createElement('div');
     item.className = 'hitStat ' + t.id;
     const icon = document.createElement('div');
@@ -250,6 +327,11 @@ function startGame() {
     h.el.classList.remove('up', 'hit', 'miss');
     clearTimeout(h.timeoutId);
   });
+
+   if (musicEnabled) {
+    bgmAudio.volume = 0.4;
+    bgmAudio.play().catch(() => { });
+  }
 
   clearInterval(timerId);
   clearTimeout(spawnTimeoutId);
@@ -352,63 +434,48 @@ window.addEventListener('load', fitToScreen);
 requestAnimationFrame(fitToScreen);
 setTimeout(fitToScreen, 300); // 字型載入後再校正一次
 
-/* debug 模式切換：輸入密碼正確才會開啟/關閉，自訂圖片按鈕僅在 debug 模式下顯示 */
-debugToggleBtn.addEventListener('click', ()=>{
-  if(debugMode){
-    debugMode = false;
-    document.body.classList.remove('debug-mode');
-    settingsOverlay.classList.add('hidden');
-    return;
-  }
-  const input = window.prompt('請輸入 debug 模式密碼：');
-  if(input === null) return;
-  if(input === DEBUG_PASSWORD){
-    debugMode = true;
-    document.body.classList.add('debug-mode');
-  } else {
-    window.alert('密碼錯誤');
+/* 設定按鈕：點擊直接開關設定視窗 */
+debugToggleBtn.addEventListener('click', () => {
+  settingsOverlay.classList.toggle('hidden');
+  if (!settingsOverlay.classList.contains('hidden')) {
+    durationInput.value = CONFIG.gameSeconds;
   }
 });
 
-/* Debug 設定彈出視窗 */
-settingsBtn.addEventListener('click', () => {
-  imgInputs.plus1.value = typeById('plus1').image;
-  imgInputs.plus2.value = typeById('plus2').image;
-  imgInputs.minus1.value = typeById('minus1').image;
-  imgInputs.minus2.value = typeById('minus2').image;
-  durationInput.value = CONFIG.gameSeconds;
-  settingsOverlay.classList.remove('hidden');
-});
 closeSettingsBtn.addEventListener('click', () => {
   settingsOverlay.classList.add('hidden');
 });
-applyImgBtn.addEventListener('click', () => {
-  typeById('plus1').image = imgInputs.plus1.value.trim();
-  typeById('plus2').image = imgInputs.plus2.value.trim();
-  typeById('minus1').image = imgInputs.minus1.value.trim();
-  typeById('minus2').image = imgInputs.minus2.value.trim();
-  buildLegend();
+
+sfxToggle.addEventListener('change', () => {
+  sfxEnabled = sfxToggle.checked;
 });
-resetImgBtn.addEventListener('click', () => {
-  CONFIG.targetTypes.forEach(t => t.image = '');
-  Object.values(imgInputs).forEach(inp => inp.value = '');
-  buildLegend();
+
+musicToggle.addEventListener('change', () => {
+  musicEnabled = musicToggle.checked;
+  if (musicEnabled) {
+    bgmAudio.volume = 0.4;
+    bgmAudio.play().catch(() => { });
+  } else {
+    bgmAudio.pause();
+  }
 });
-applyDurationBtn.addEventListener('click', ()=>{
+
+applyDurationBtn.addEventListener('click', () => {
   const val = parseInt(durationInput.value, 10);
-  if(!Number.isFinite(val) || val < 5 || val > 600){
+  if (!Number.isFinite(val) || val < 5 || val > 600) {
     window.alert('請輸入 5～600 之間的整數秒數');
     return;
   }
+
   CONFIG.gameSeconds = val;
-  if(!running){
+  if (!running) {
     timeLeft = CONFIG.gameSeconds;
     timeVal.textContent = timeLeft;
   }
   window.alert('遊戲時間已設定為 ' + val + ' 秒，切換回一般模式後也會套用這個時間唷！');
 });
 
-/* 演唱會場景裝飾：星光與五彩紙屑 */
+/* 夏日海島場景裝飾：陽光星光與隨風飄起的泡泡 */
 (function makeStageDecor() {
   const stage = document.getElementById('stageBg');
   const sparklePositions = [
@@ -425,15 +492,14 @@ applyDurationBtn.addEventListener('click', ()=>{
     stage.appendChild(el);
   });
 
-  const colors = ['#ff4fd8', '#4ff0ff', '#ffe066', '#8bff8b', '#c99bff'];
-  for (let i = 0; i < 18; i++) {
+  for (let i = 0; i < 16; i++) {
     const c = document.createElement('div');
     c.className = 'confetti';
     c.style.left = Math.random() * 100 + '%';
-    c.style.background = colors[i % colors.length];
-    c.style.animationDuration = (5 + Math.random() * 5) + 's';
-    c.style.animationDelay = (Math.random() * 6) + 's';
-    c.style.transform = `scale(${0.6 + Math.random() * 0.7})`;
+
+    c.style.animationDuration = (6 + Math.random() * 6) + 's';
+    c.style.animationDelay = (Math.random() * 7) + 's';
+    c.style.transform = `scale(${0.6 + Math.random() * 1.1})`;
     stage.appendChild(c);
   }
 })();
