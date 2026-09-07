@@ -470,7 +470,7 @@ applyDurationBtn.addEventListener('click', () => {
     timeLeft = CONFIG.gameSeconds;
     timeVal.textContent = timeLeft;
   }
-  window.alert('遊戲時間已設定為 ' + val + ' 秒，切換回一般模式後也會套用這個時間唷！');
+  window.alert('遊戲時間已設定為 ' + val + ' 秒！');
 });
 
 /* 夏日海島場景裝飾：陽光星光與隨風飄起的泡泡 */
