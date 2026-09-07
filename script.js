@@ -329,8 +329,7 @@ function startGame() {
   });
 
    if (musicEnabled) {
-    bgmAudio.volume = 0.4;
-    bgmAudio.play().catch(() => { });
+    tryPlayBgm();
   }
 
   clearInterval(timerId);
@@ -453,8 +452,7 @@ sfxToggle.addEventListener('change', () => {
 musicToggle.addEventListener('change', () => {
   musicEnabled = musicToggle.checked;
   if (musicEnabled) {
-    bgmAudio.volume = 0.4;
-    bgmAudio.play().catch(() => { });
+tryPlayBgm();
   } else {
     bgmAudio.pause();
   }
@@ -503,3 +501,30 @@ applyDurationBtn.addEventListener('click', () => {
     stage.appendChild(c);
   }
 })();
+
+/* ===== 背景音樂：開啟網頁自動播放 + 切到背景自動停止 ===== */
+function tryPlayBgm() {
+  if (!musicEnabled) return;
+  bgmAudio.volume = 0.4;
+  bgmAudio.play().catch(() => { });
+}
+
+window.addEventListener('load', tryPlayBgm);
+tryPlayBgm();
+
+function unlockBgmOnce() {
+  tryPlayBgm();
+  document.removeEventListener('pointerdown', unlockBgmOnce);
+  document.removeEventListener('touchstart', unlockBgmOnce);
+}
+document.addEventListener('pointerdown', unlockBgmOnce, { once: true });
+document.addEventListener('touchstart', unlockBgmOnce, { once: true });
+
+/* 分頁被切到背景、鎖屏、切換 App 時暫停；回到前景時如果音樂設定是開啟的就恢復播放 */
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    bgmAudio.pause();
+  } else {
+    tryPlayBgm();
+  }
+});
