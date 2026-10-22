@@ -1044,3 +1044,81 @@ button.ghost {
 .rule-item.minus2 .badge {
   color: var(--minus2);
 }
+
+/* ===== 遊戲規則視窗：視窗大小不變，放大文字與圖片（兩欄、圖上字下） ===== */
+.rules-modal h2 { font-size: 28px; }
+.rules-modal .hint { font-size: 14px; }
+.rules-section h3 { font-size: 18px; margin-bottom: 10px; }
+.rules-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.rule-item { flex-direction: column; justify-content: center; gap: 6px; padding: 10px 6px; }
+.rule-item .icon { width: 100px; height: 100px; font-size: 48px; }
+.rule-item .badge { font-size: 22px; }
+
+/* ===== 演唱會廣告視窗 ===== */
+.promo-modal {
+  border-color: var(--sun);
+  box-shadow: 0 12px 0 rgba(0, 0, 0, 0.3), 0 0 34px rgba(255, 183, 3, 0.45);
+}
+
+.promo-tag {
+  display: inline-block;
+  font-family: 'Fredoka', sans-serif;
+  font-weight: 600;
+  font-size: 13px;
+  background: var(--coral);
+  color: #fff;
+  padding: 4px 14px;
+  border-radius: 999px;
+  margin-bottom: 12px;
+  box-shadow: 0 0 12px rgba(255, 111, 89, 0.6);
+}
+
+.promo-img {
+  display: block;
+  width: 100%;
+  border-radius: 14px;
+  margin-bottom: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+}
+
+.promo-date {
+  font-family: 'Fredoka', sans-serif;
+  font-weight: 700;
+  font-size: 52px;
+  line-height: 1;
+  color: var(--sun);
+  text-shadow: 0 0 14px rgba(255, 183, 3, 0.7);
+  margin: 4px 0 8px;
+  animation: flicker 3.4s infinite;
+}
+
+.promo-modal .promo-title {
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1.5;
+  color: #fff;
+  margin: 4px 0 18px;
+}
+
+.promo-link {
+  display: block;
+  text-align: center;
+  text-decoration: none;
+  font-family: 'Fredoka', sans-serif;
+  font-weight: 600;
+  font-size: 16px;
+  padding: 10px 24px;
+  border-radius: 999px;
+  color: #fff;
+  background: linear-gradient(135deg, var(--lagoon), #2ad1c0);
+  box-shadow: 0 5px 0 var(--lagoon-dark), 0 0 14px rgba(0, 180, 166, 0.5);
+  margin-bottom: 14px;
+  transition: transform .08s, box-shadow .08s;
+}
+
+.promo-link:active {
+  transform: translateY(3px);
+  box-shadow: 0 2px 0 var(--lagoon-dark), 0 0 10px rgba(0, 180, 166, 0.5);
+}
+
+.promo-modal .mainbtn { width: 100%; }

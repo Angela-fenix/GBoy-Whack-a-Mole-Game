@@ -42,6 +42,8 @@ const rulesBad = document.getElementById('rulesBad');
 const sfxToggle = document.getElementById('sfxToggle');
 const musicToggle = document.getElementById('musicToggle');
 const bgmAudio = document.getElementById('bgmAudio');
+const promoOverlay = document.getElementById('promoOverlay');
+const replayBtn = document.getElementById('replayBtn');
 
 let sfxEnabled = true;
 let musicEnabled = true;
@@ -328,7 +330,7 @@ function startGame() {
     clearTimeout(h.timeoutId);
   });
 
-   if (musicEnabled) {
+  if (musicEnabled) {
     tryPlayBgm();
   }
 
@@ -380,7 +382,17 @@ function resetToIdle() {
 }
 
 startBtn.addEventListener('click', startGame);
-playAgainBtn.addEventListener('click', resetToIdle);
+// playAgainBtn.addEventListener('click', resetToIdle);
+
+/* 點「再登陸一次」→ 先顯示演唱會廣告；點「真的再玩一次」才回到遊戲 */
+playAgainBtn.addEventListener('click', () => {
+  overlay.classList.add('hidden');
+  promoOverlay.classList.remove('hidden');
+});
+replayBtn.addEventListener('click', () => {
+  promoOverlay.classList.add('hidden');
+  resetToIdle();
+});
 
 /* 偵測是否為滑鼠(hover)裝置，決定是否顯示跟隨槌子 */
 if (window.matchMedia && window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
@@ -452,7 +464,7 @@ sfxToggle.addEventListener('change', () => {
 musicToggle.addEventListener('change', () => {
   musicEnabled = musicToggle.checked;
   if (musicEnabled) {
-tryPlayBgm();
+    tryPlayBgm();
   } else {
     bgmAudio.pause();
   }
@@ -502,23 +514,33 @@ applyDurationBtn.addEventListener('click', () => {
   }
 })();
 
-/* ===== 背景音樂：開啟網頁自動播放 + 切到背景自動停止 ===== */
+/* ===== 背景音樂：載入時先嘗試播放；被瀏覽器擋下就等第一次有效互動再重試，成功才停止監聽 ===== */
+const BGM_UNLOCK_EVENTS = ['pointerup', 'click', 'touchend', 'keydown'];
+
+function removeBgmUnlockListeners() {
+  BGM_UNLOCK_EVENTS.forEach(ev => document.removeEventListener(ev, tryPlayBgm, true));
+}
 function tryPlayBgm() {
   if (!musicEnabled) return;
   bgmAudio.volume = 0.4;
-  bgmAudio.play().catch(() => { });
+
+  const p = bgmAudio.play();
+  if (p && typeof p.then === 'function') {
+    p.then(removeBgmUnlockListeners).catch(() => { /* 被擋下：保留監聽，下次互動再試 */ });
+  }
 }
 
+BGM_UNLOCK_EVENTS.forEach(ev => document.addEventListener(ev, tryPlayBgm, true));
 window.addEventListener('load', tryPlayBgm);
 tryPlayBgm();
 
-function unlockBgmOnce() {
+/*function unlockBgmOnce() {
   tryPlayBgm();
   document.removeEventListener('pointerdown', unlockBgmOnce);
   document.removeEventListener('touchstart', unlockBgmOnce);
 }
 document.addEventListener('pointerdown', unlockBgmOnce, { once: true });
-document.addEventListener('touchstart', unlockBgmOnce, { once: true });
+document.addEventListener('touchstart', unlockBgmOnce, { once: true });*/
 
 /* 分頁被切到背景、鎖屏、切換 App 時暫停；回到前景時如果音樂設定是開啟的就恢復播放 */
 document.addEventListener('visibilitychange', () => {
