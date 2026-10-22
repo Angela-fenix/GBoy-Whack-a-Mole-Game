@@ -534,14 +534,6 @@ BGM_UNLOCK_EVENTS.forEach(ev => document.addEventListener(ev, tryPlayBgm, true))
 window.addEventListener('load', tryPlayBgm);
 tryPlayBgm();
 
-/*function unlockBgmOnce() {
-  tryPlayBgm();
-  document.removeEventListener('pointerdown', unlockBgmOnce);
-  document.removeEventListener('touchstart', unlockBgmOnce);
-}
-document.addEventListener('pointerdown', unlockBgmOnce, { once: true });
-document.addEventListener('touchstart', unlockBgmOnce, { once: true });*/
-
 /* 分頁被切到背景、鎖屏、切換 App 時暫停；回到前景時如果音樂設定是開啟的就恢復播放 */
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) {
@@ -550,3 +542,32 @@ document.addEventListener('visibilitychange', () => {
     tryPlayBgm();
   }
 });
+
+/* ===== 小視窗自動縮放：內容比螢幕大（例如手機橫向）時等比縮小，確保不用捲動 ===== */
+function fitModals() {
+  const availW = window.innerWidth - 16;
+  const availH = window.innerHeight - 16;
+  document.querySelectorAll('.overlay:not(.hidden) .modal').forEach(m => {
+    m.style.transform = 'none';
+    const w = m.offsetWidth, h = m.offsetHeight;
+    if (!w || !h) return;
+    const scale = Math.min(1, availW / w, availH / h);
+    m.style.transform = scale < 1 ? `scale(${scale})` : 'none';
+  });
+}
+
+let fitModalsRaf = null;
+function scheduleFitModals() {
+  cancelAnimationFrame(fitModalsRaf);
+  fitModalsRaf = requestAnimationFrame(fitModals);
+}
+
+/* 任何視窗開啟/關閉（overlay 的 hidden 狀態改變）時重新計算 */
+const modalObserver = new MutationObserver(scheduleFitModals);
+document.querySelectorAll('.overlay').forEach(o =>
+  modalObserver.observe(o, { attributes: true, attributeFilter: ['class'] }));
+
+window.addEventListener('resize', scheduleFitModals);
+window.addEventListener('orientationchange', () => setTimeout(scheduleFitModals, 200));
+window.addEventListener('load', scheduleFitModals);
+scheduleFitModals();

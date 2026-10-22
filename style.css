@@ -1122,3 +1122,32 @@ button.ghost {
 }
 
 .promo-modal .mainbtn { width: 100%; }
+
+/* ===== 小視窗一律不出現捲軸：內容超出畫面時由 JS 等比縮小（見 script.js fitModals） ===== */
+.modal { max-height: none; overflow: visible; transform-origin: center center; }
+
+/* ===== 手機橫向（高度很矮）：規則視窗、廣告視窗改為左右並排版面 ===== */
+@media (orientation: landscape) and (max-height: 520px) {
+  .modal { padding: 14px 20px; border-radius: 16px; }
+
+  /* 遊戲規則：加分項／扣分項左右並排 */
+  .rules-modal { max-width: 600px; display: grid; grid-template-columns: 1fr 1fr; column-gap: 18px; align-items: start; }
+  .rules-modal h2 { grid-column: 1 / -1; font-size: 22px; margin-bottom: 4px; }
+  .rules-modal .hint { grid-column: 1 / -1; font-size: 12px; margin: 0 0 8px; }
+  .rules-section, .rules-section:last-child { margin-bottom: 0; }
+  .rules-section h3 { font-size: 15px; margin-bottom: 6px; }
+  .rules-row { gap: 8px; }
+  .rule-item { padding: 6px 4px; gap: 3px; }
+  .rule-item .icon { width: 72px; height: 72px; }
+  .rule-item .badge { font-size: 17px; }
+
+  /* 演唱會廣告：左（標籤/圖/日期）右（標題/按鈕） */
+  .promo-modal { max-width: 580px; display: grid; grid-template-columns: 1fr 1fr; column-gap: 20px; align-items: center; }
+  .promo-img { max-height: 110px; object-fit: cover; margin-bottom: 8px; }
+  .promo-tag { margin-bottom: 8px; }
+  .promo-date { font-size: 46px; margin: 2px 0 0; }
+  .promo-modal h2 { font-size: 20px; margin-bottom: 4px; }
+  .promo-modal .promo-title { font-size: 14px; margin: 2px 0 12px; }
+  .promo-link { padding: 8px 16px; font-size: 15px; margin-bottom: 10px; }
+  .promo-modal .mainbtn { padding: 8px 16px; font-size: 15px; }
+}

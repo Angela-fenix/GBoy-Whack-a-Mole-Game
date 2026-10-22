@@ -67,18 +67,22 @@
     </div>
   </div>
 
-    <!-- 演唱會廣告視窗：只能按「真的再玩一次」關閉 -->
+  <!-- 演唱會廣告視窗：只能按「真的再玩一次」關閉 -->
   <div class="overlay hidden" id="promoOverlay">
     <div class="modal promo-modal">
-      <div class="promo-tag">🎤 演唱會快報</div>
-      <!-- 想放宣傳圖：把圖片命名為 promo.jpg 放進 assets/ 即可；沒有圖片時會自動隱藏 -->
-      <img class="promo-img" src="assets/promo.jpg" alt="" onerror="this.remove()">
-      <div class="promo-date">12/26</div>
-      <h2>一起去鼓鼓呂思緯</h2>
-      <p class="promo-title">《我現在又在想你了》<br>巡迴演唱會！</p>
-      <a class="promo-link" href="https://tixcraft.com/activity/detail/26_gboyswag" target="_blank"
-        rel="noopener noreferrer">🎟️ 前往拓元購票</a>
-      <button class="mainbtn" id="replayBtn">真的再玩一次</button>
+      <div class="promo-left">
+        <div class="promo-tag">🎤 演唱會快報</div>
+        <!-- 想放宣傳圖：把圖片命名為 promo.jpg 放進 assets/ 即可；沒有圖片時會自動隱藏 -->
+        <img class="promo-img" src="assets/promo.jpg" alt="" onerror="this.remove()">
+        <div class="promo-date">12/26</div>
+      </div>
+      <div class="promo-right">
+        <h2>一起去鼓鼓呂思緯</h2>
+        <p class="promo-title">《我現在又在想你了》<br>巡迴演唱會！</p>
+        <a class="promo-link" href="https://tixcraft.com/activity/detail/26_gboyswag" target="_blank"
+          rel="noopener noreferrer">🎟️ 前往拓元購票</a>
+        <button class="mainbtn" id="replayBtn">真的再玩一次</button>
+      </div>
     </div>
   </div>
 
@@ -100,7 +104,7 @@
 
       <div class="btnrow">
         <button class="mainbtn" id="closeSettingsBtn" style="width:100%;">關閉</button>
-      </div>     
+      </div>
     </div>
   </div>
 
