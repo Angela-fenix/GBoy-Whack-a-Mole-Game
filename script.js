@@ -44,6 +44,7 @@ const musicToggle = document.getElementById('musicToggle');
 const bgmAudio = document.getElementById('bgmAudio');
 const promoOverlay = document.getElementById('promoOverlay');
 const replayBtn = document.getElementById('replayBtn');
+const credit = document.getElementById('credit');
 
 let sfxEnabled = true;
 let musicEnabled = true;
@@ -432,6 +433,7 @@ function fitToScreen() {
   stageRoot.style.transform = `translate(${left}px, ${top}px) scale(${scale})`;
 
   syncHammerSize();
+  placeCredit();
 }
 
 let resizeTimer = null;
@@ -571,3 +573,36 @@ window.addEventListener('resize', scheduleFitModals);
 window.addEventListener('orientationchange', () => setTimeout(scheduleFitModals, 200));
 window.addEventListener('load', scheduleFitModals);
 scheduleFitModals();
+
+/* ===== 音樂版權資訊位置：「開始登陸」下方空間夠就放下方，否則放設定按鈕上方 ===== */
+function placeCredit() {
+  if (!credit) return;
+  const r = stageRoot.getBoundingClientRect();
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  const gap = 4;
+  const EDGE = 14;       // 與設定按鈕相同：距離畫面底邊 14px
+  const GEAR_ZONE = 58;  // 設定按鈕佔用：距邊緣 14px + 按鈕 36px + 間距
+
+  // 先試「貼齊畫面底邊」：和設定按鈕同一條底線，左右各讓出按鈕寬度，置中
+  credit.classList.remove('corner');
+  const w = Math.min(r.width, 400, vw - GEAR_ZONE * 2);
+  credit.style.width = w + 'px';
+  credit.style.left = ((vw - w) / 2) + 'px';
+  credit.style.right = 'auto';
+  credit.style.top = 'auto';
+  credit.style.bottom = EDGE + 'px';
+
+  // 方塊頂端必須在遊戲畫面（開始登陸按鈕）下緣之下，否則會蓋到遊戲
+  const fits = (vh - EDGE - credit.offsetHeight) >= (r.bottom + gap);
+  if (!fits) {
+    // 空間不足：改放設定按鈕上方（位置由 CSS .corner 決定）
+    credit.style.width = '';
+    credit.style.left = '';
+    credit.style.top = '';
+    credit.style.right = '';
+    credit.style.bottom = '';
+    credit.classList.add('corner');
+  }
+  credit.classList.add('placed');
+}
