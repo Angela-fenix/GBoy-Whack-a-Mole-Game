@@ -589,23 +589,25 @@ const CREDIT_MIN_SCALE = 0.85; // 文字最小縮放比例
 
 function planCredit(vw, vh, refW, refH, margin) {
   if (!credit || vh <= vw) return null;           // 非直向：交給原本邏輯
-  const w = Math.min(400, vw - CREDIT_GEAR_ZONE * 2);
-  if (w < 160) return null;
+   const maxW = vw - CREDIT_GEAR_ZONE * 2;         // 左右各讓出設定按鈕的寬度
+  if (maxW < 120) return null;
 
   credit.classList.remove('corner');
   credit.style.transform = 'none';
-  credit.style.width = w + 'px';
-  const h1 = credit.offsetHeight;                 // 原始大小時的高度
+  credit.style.width = 'max-content';             // 每行不換行，寬度由最長的一行決定
+  const wn = credit.offsetWidth;                  // 原始大小時的寬、高
+  const h1 = credit.offsetHeight;
 
   const scale0 = Math.min(vw / refW, vh / refH) * margin;
   const stageBottom = (vh + refH * scale0) / 2;   // 遊戲畫面置中時的下緣
   const space0 = vh - stageBottom - CREDIT_GAP - CREDIT_EDGE;
 
-  let t = 1;
-  if (space0 < h1) t = Math.max(CREDIT_MIN_SCALE, space0 / h1);
+  const tW = Math.min(1, maxW / wn);              // 寬度不夠 → 等比縮小
+  const tH = space0 < h1 ? Math.max(CREDIT_MIN_SCALE, space0 / h1) : 1;  // 高度不夠 → 等比縮小
+  const t = Math.min(tW, tH);
   const h = h1 * t;
   const reserve = h <= space0 + 0.5 ? 0 : (CREDIT_EDGE + h + CREDIT_GAP);
-  return { w, t, h, reserve };
+  return { w: wn, t, h, reserve };
 }
 
 function placeCredit(plan) {
@@ -616,9 +618,9 @@ function placeCredit(plan) {
   credit.classList.remove('corner');
 
   if (plan) {
-    // 直向：寬度先放大 1/t 再整體縮小 t，視覺寬度剛好是 plan.w，底邊貼齊
-    credit.style.width = (plan.w / plan.t) + 'px';
-    credit.style.left = ((vw - plan.w / plan.t) / 2) + 'px';  // 以放大後的版面寬度置中，縮放才不會偏移
+    // 直向：版面寬度 = 最長一行，置中後整體縮放（以底邊中心為基準，位置不偏移）
+    credit.style.width = plan.w + 'px';
+    credit.style.left = ((vw - plan.w) / 2) + 'px';
     credit.style.right = 'auto';
     credit.style.top = 'auto';
     credit.style.bottom = CREDIT_EDGE + 'px';
@@ -631,14 +633,15 @@ function placeCredit(plan) {
   // 橫向／電腦：先試貼齊底邊，放不下就移到設定按鈕上方
   const r = stageRoot.getBoundingClientRect();
   credit.style.transform = 'none';
-  const w = Math.min(r.width, 400, vw - CREDIT_GEAR_ZONE * 2);
-  credit.style.width = w + 'px';
-  credit.style.left = ((vw - w) / 2) + 'px';
+  credit.style.width = 'max-content';
+  const wn = credit.offsetWidth;
+  credit.style.left = ((vw - wn) / 2) + 'px';
   credit.style.right = 'auto';
   credit.style.top = 'auto';
   credit.style.bottom = CREDIT_EDGE + 'px';
 
-  const fits = (vh - CREDIT_EDGE - credit.offsetHeight) >= (r.bottom + 4);
+  const fits = wn <= vw - CREDIT_GEAR_ZONE * 2 &&
+    (vh - CREDIT_EDGE - credit.offsetHeight) >= (r.bottom + 4);
   if (!fits) {
     credit.style.width = '';
     credit.style.left = '';

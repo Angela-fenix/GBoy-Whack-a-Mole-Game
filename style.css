@@ -1200,3 +1200,6 @@ button.ghost {
 
 .credit.corner .credit-title { font-size: 13px; margin-bottom: 1px; }
 .credit.corner .credit-line { font-size: 11px; }
+/* 每一行都不自動換行：換行位置完全由 HTML 的 <br> 決定；方塊寬度跟著最長的那一行走 */
+.credit { white-space: nowrap; }
+.credit.corner { max-width: none; }
