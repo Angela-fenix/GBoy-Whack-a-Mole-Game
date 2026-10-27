@@ -426,14 +426,18 @@ function fitToScreen() {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
   const margin = 0.96;
-  const scale = Math.min(vw / refW, vh / refH) * margin;
 
+  // 直向時先算出音樂資訊需要的空間；不夠就預留（遊戲畫面等比縮小一點）
+  const plan = planCredit(vw, vh, refW, refH, margin);
+  const areaH = vh - (plan ? plan.reserve : 0);
+
+  const scale = Math.min(vw / refW, areaH / refH) * margin;
   const left = (vw - refW * scale) / 2;
-  const top = (vh - refH * scale) / 2;
+  const top = (areaH - refH * scale) / 2;
   stageRoot.style.transform = `translate(${left}px, ${top}px) scale(${scale})`;
 
   syncHammerSize();
-  placeCredit();
+  placeCredit(plan);
 }
 
 let resizeTimer = null;
@@ -574,29 +578,68 @@ window.addEventListener('orientationchange', () => setTimeout(scheduleFitModals,
 window.addEventListener('load', scheduleFitModals);
 scheduleFitModals();
 
-/* ===== 音樂版權資訊位置：「開始登陸」下方空間夠就放下方，否則放設定按鈕上方 ===== */
-function placeCredit() {
+/* ===== 音樂版權資訊位置 =====
+   直向：固定在畫面底部、「開始登陸」按鈕下方（與設定按鈕同一條底線）。
+         下方空間不夠時先等比縮小文字（最小 CREDIT_MIN_SCALE），還不夠就讓遊戲畫面稍微縮小，絕不重疊。
+   橫向／電腦：維持原本做法，空間夠放底部，否則放設定按鈕上方。 */
+const CREDIT_EDGE = 14;        // 與設定按鈕相同：距離畫面底邊 14px
+const CREDIT_GEAR_ZONE = 66;   // 設定按鈕佔用：距邊緣 14px + 按鈕 44px + 間距
+const CREDIT_GAP = 6;          // 與遊戲畫面之間的最小間距
+const CREDIT_MIN_SCALE = 0.85; // 文字最小縮放比例
+
+function planCredit(vw, vh, refW, refH, margin) {
+  if (!credit || vh <= vw) return null;           // 非直向：交給原本邏輯
+  const w = Math.min(400, vw - CREDIT_GEAR_ZONE * 2);
+  if (w < 160) return null;
+
+  credit.classList.remove('corner');
+  credit.style.transform = 'none';
+  credit.style.width = w + 'px';
+  const h1 = credit.offsetHeight;                 // 原始大小時的高度
+
+  const scale0 = Math.min(vw / refW, vh / refH) * margin;
+  const stageBottom = (vh + refH * scale0) / 2;   // 遊戲畫面置中時的下緣
+  const space0 = vh - stageBottom - CREDIT_GAP - CREDIT_EDGE;
+
+  let t = 1;
+  if (space0 < h1) t = Math.max(CREDIT_MIN_SCALE, space0 / h1);
+  const h = h1 * t;
+  const reserve = h <= space0 + 0.5 ? 0 : (CREDIT_EDGE + h + CREDIT_GAP);
+  return { w, t, h, reserve };
+}
+
+function placeCredit(plan) {
   if (!credit) return;
-  const r = stageRoot.getBoundingClientRect();
   const vw = window.innerWidth;
   const vh = window.innerHeight;
-  const gap = 4;
-  const EDGE = 14;       // 與設定按鈕相同：距離畫面底邊 14px
-  const GEAR_ZONE = 58;  // 設定按鈕佔用：距邊緣 14px + 按鈕 36px + 間距
 
-  // 先試「貼齊畫面底邊」：和設定按鈕同一條底線，左右各讓出按鈕寬度，置中
   credit.classList.remove('corner');
-  const w = Math.min(r.width, 400, vw - GEAR_ZONE * 2);
+
+  if (plan) {
+    // 直向：寬度先放大 1/t 再整體縮小 t，視覺寬度剛好是 plan.w，底邊貼齊
+    credit.style.width = (plan.w / plan.t) + 'px';
+    credit.style.left = ((vw - plan.w) / 2) + 'px';
+    credit.style.right = 'auto';
+    credit.style.top = 'auto';
+    credit.style.bottom = CREDIT_EDGE + 'px';
+    credit.style.transformOrigin = 'center bottom';
+    credit.style.transform = plan.t < 1 ? `scale(${plan.t})` : 'none';
+    credit.classList.add('placed');
+    return;
+  }
+
+  // 橫向／電腦：先試貼齊底邊，放不下就移到設定按鈕上方
+  const r = stageRoot.getBoundingClientRect();
+  credit.style.transform = 'none';
+  const w = Math.min(r.width, 400, vw - CREDIT_GEAR_ZONE * 2);
   credit.style.width = w + 'px';
   credit.style.left = ((vw - w) / 2) + 'px';
   credit.style.right = 'auto';
   credit.style.top = 'auto';
-  credit.style.bottom = EDGE + 'px';
+  credit.style.bottom = CREDIT_EDGE + 'px';
 
-  // 方塊頂端必須在遊戲畫面（開始登陸按鈕）下緣之下，否則會蓋到遊戲
-  const fits = (vh - EDGE - credit.offsetHeight) >= (r.bottom + gap);
+  const fits = (vh - CREDIT_EDGE - credit.offsetHeight) >= (r.bottom + 4);
   if (!fits) {
-    // 空間不足：改放設定按鈕上方（位置由 CSS .corner 決定）
     credit.style.width = '';
     credit.style.left = '';
     credit.style.top = '';
