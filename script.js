@@ -226,7 +226,7 @@ function popScore(hole, delta) {
   setTimeout(() => p.remove(), 700);
 }
 
-const HAMMER_IMAGE = 'https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Hammer/3D/hammer_3d.png';
+const HAMMER_IMAGE = 'assets/hammer_3d.png';
 
 function spawnHammerStrike(x, y) {
   const s = document.createElement('div');
@@ -618,7 +618,7 @@ function placeCredit(plan) {
   if (plan) {
     // 直向：寬度先放大 1/t 再整體縮小 t，視覺寬度剛好是 plan.w，底邊貼齊
     credit.style.width = (plan.w / plan.t) + 'px';
-    credit.style.left = ((vw - plan.w) / 2) + 'px';
+    credit.style.left = ((vw - plan.w / plan.t) / 2) + 'px';  // 以放大後的版面寬度置中，縮放才不會偏移
     credit.style.right = 'auto';
     credit.style.top = 'auto';
     credit.style.bottom = CREDIT_EDGE + 'px';
