@@ -444,7 +444,10 @@ if (window.matchMedia && window.matchMedia('(hover: hover) and (pointer: fine)')
 window.addEventListener('pointermove', (e) => {
   hammer.style.left = e.clientX + 'px';
   hammer.style.top = e.clientY + 'px';
+  hammer.classList.add('ready');   // 第一次移動後才顯示槌子
 });
+/* 滑鼠移出網頁時先收起槌子，移回來再顯示 */
+document.documentElement.addEventListener('pointerleave', () => { hammer.classList.remove('ready'); });
 window.addEventListener('pointerdown', () => { hammer.classList.add('swing'); });
 window.addEventListener('pointerup', () => { hammer.classList.remove('swing'); });
 

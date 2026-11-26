@@ -577,11 +577,16 @@ h1 {
   width: var(--hammer-size, 60px);
   height: var(--hammer-size, 60px);
   pointer-events: none;
-  z-index: 999;
+  z-index: 3000;               /* 高於所有視窗遮罩(1000)與設定按鈕(1500)，視窗開啟時槌子仍在最上層 */
   transform: translate(-30%, -58%) rotate(-25deg);
   transition: transform .07s ease-out;
   filter: drop-shadow(3px 4px 3px rgba(0, 0, 0, 0.4));
   display: none;
+  visibility: hidden;          /* 滑鼠第一次移動前先隱藏，避免停在左上角 (0,0) */
+}
+
+.hammer.ready {
+  visibility: visible;
 }
 
 .hammer img {
@@ -606,9 +611,8 @@ h1 {
 }
 
 .has-hover,
-.has-hover .hole,
-.has-hover .board {
-  cursor: none;
+.has-hover *:not(input) {
+  cursor: none !important;     /* 電腦版全畫面（含視窗、按鈕）都改用槌子當游標 */
 }
 
 .hammer-strike {
