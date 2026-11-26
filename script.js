@@ -55,6 +55,9 @@ let timeLeft = CONFIG.gameSeconds;
 let running = false;
 let timerId = null;
 let spawnTimeoutId = null;
+let paused = false;      // 分頁被切到背景時暫停
+let endTime = 0;         // 遊戲結束的時間點（Date.now 基準，不受背景降頻影響）
+let remainingMs = 0;     // 暫停時剩餘毫秒數
 let hitCounts = {};
 
 function resetHitCounts() {
@@ -107,7 +110,7 @@ function buildBoard() {
     hole.appendChild(target);
     hole.addEventListener('pointerdown', (e) => onHit(hole, e));
     board.insertBefore(hole, footlights);
-    holes.push({ el: hole, target, up: false, timeoutId: null });
+    holes.push({ el: hole, target, up: false, timeoutId: null, hitTimeoutId: null });
   }
   requestAnimationFrame(fitToScreen);
 }
@@ -146,6 +149,7 @@ function buildRules() {
 }
 
 function showRules() {
+  if (running) return;   // 遊戲中點到圖例不要彈窗（計時不會停）
   buildRules();
   rulesOverlay.classList.remove('hidden');
 }
@@ -239,7 +243,7 @@ function spawnHammerStrike(x, y) {
 }
 
 function onHit(hole, e) {
-  if (!running) return;
+  if (!running || paused) return;
   const h = holes.find(x => x.el === hole);
   if (!h || !h.up) return;
   if (h.el.classList.contains('hit') || h.el.classList.contains('miss')) return;
@@ -267,12 +271,19 @@ function onHit(hole, e) {
   scoreVal.style.transform = 'scale(1.3)';
   setTimeout(() => scoreVal.style.transform = 'scale(1)', 150);
 
-  setTimeout(() => { hole.classList.remove('hit', 'miss', 'up'); }, 320);
+  // 只清掉 hit/miss 動畫；不碰 up，避免誤刪同一個洞剛冒出來的新地鼠
+  clearTimeout(h.hitTimeoutId);
+  h.hitTimeoutId = setTimeout(() => { hole.classList.remove('hit', 'miss'); }, 320);
 }
 
 function popUp() {
-  if (!running) return;
-  const idlePool = holes.filter(h => !h.up);
+  if (!running || paused) return;
+  // 排除「正在播放被打中動畫」的洞，避免新地鼠被舊動畫的清除動作吃掉
+  const idlePool = holes.filter(h =>
+    !h.up &&
+    !h.el.classList.contains('hit') &&
+    !h.el.classList.contains('miss')
+  );
   if (idlePool.length === 0) { scheduleNext(); return; }
   const h = idlePool[Math.floor(Math.random() * idlePool.length)];
   const type = pickType();
@@ -290,7 +301,7 @@ function popUp() {
 }
 
 function scheduleNext() {
-  if (!running) return;
+  if (!running || paused) return;
   const { gap } = currentTimings();
   spawnTimeoutId = setTimeout(popUp, gap * (0.6 + Math.random() * 0.8));
 }
@@ -314,10 +325,37 @@ function renderHitStats() {
   });
 }
 
+/* 把單一洞口完整重置（含兩種計時器），避免殘留的 setTimeout 影響下一局 */
+function resetHole(h) {
+  clearTimeout(h.timeoutId);
+  clearTimeout(h.hitTimeoutId);
+  h.up = false;
+  h.el.classList.remove('up', 'hit', 'miss');
+}
+
+/* 以 Date.now() 計算剩餘時間：背景分頁 setInterval 被降頻也不會失準 */
+function tick() {
+  if (!running || paused) return;
+  const left = Math.max(0, Math.ceil((endTime - Date.now()) / 1000));
+  if (left !== timeLeft) {
+    timeLeft = left;
+    timeVal.textContent = timeLeft;
+  }
+  if (left <= 0) { endGame(); }
+}
+
+function startTicker() {
+  clearInterval(timerId);
+  timerId = setInterval(tick, 250);
+}
+
 function startGame() {
+  getAudioCtx();   // 在按鈕 click（有效使用者手勢）內先解鎖音效，iOS 才會有聲音
+
   score = 0;
   timeLeft = CONFIG.gameSeconds;
   running = true;
+  paused = false;
   resetHitCounts();
   scoreVal.textContent = 0;
   timeVal.textContent = timeLeft;
@@ -325,37 +363,25 @@ function startGame() {
   overlay.classList.add('hidden');
   startBtn.textContent = '表演中…';
   startBtn.disabled = true;
-  holes.forEach(h => {
-    h.up = false;
-    h.el.classList.remove('up', 'hit', 'miss');
-    clearTimeout(h.timeoutId);
-  });
+  holes.forEach(resetHole);
 
   if (musicEnabled) {
     tryPlayBgm();
   }
 
-  clearInterval(timerId);
   clearTimeout(spawnTimeoutId);
-
-  timerId = setInterval(() => {
-    timeLeft -= 1;
-    timeVal.textContent = timeLeft;
-    if (timeLeft <= 0) { endGame(); }
-  }, 1000);
+  endTime = Date.now() + CONFIG.gameSeconds * 1000;
+  startTicker();
 
   popUp();
 }
 
 function endGame() {
   running = false;
+  paused = false;
   clearInterval(timerId);
   clearTimeout(spawnTimeoutId);
-  holes.forEach(h => {
-    clearTimeout(h.timeoutId);
-    h.up = false;
-    h.el.classList.remove('up');
-  });
+  holes.forEach(resetHole);
   finalScore.textContent = score;
   renderHitStats();
   overlay.classList.remove('hidden');
@@ -365,6 +391,7 @@ function endGame() {
 
 function resetToIdle() {
   running = false;
+  paused = false;
   clearInterval(timerId);
   clearTimeout(spawnTimeoutId);
   score = 0;
@@ -372,14 +399,29 @@ function resetToIdle() {
   scoreVal.textContent = 0;
   timeVal.textContent = timeLeft;
   speedVal.textContent = 'x1.0';
-  holes.forEach(h => {
-    h.up = false;
-    h.el.classList.remove('up', 'hit', 'miss');
-    clearTimeout(h.timeoutId);
-  });
+  holes.forEach(resetHole);
   overlay.classList.add('hidden');
   startBtn.textContent = '開始表演';
   startBtn.disabled = false;
+}
+
+/* 分頁被切到背景／鎖屏：暫停遊戲並記下剩餘時間；回到前景再接續 */
+function pauseGame() {
+  if (!running || paused) return;
+  paused = true;
+  remainingMs = Math.max(0, endTime - Date.now());
+  clearInterval(timerId);
+  clearTimeout(spawnTimeoutId);
+  holes.forEach(resetHole);
+}
+
+function resumeGame() {
+  if (!running || !paused) return;
+  paused = false;
+  if (remainingMs <= 0) { timeVal.textContent = 0; endGame(); return; }
+  endTime = Date.now() + remainingMs;
+  startTicker();
+  scheduleNext();
 }
 
 startBtn.addEventListener('click', startGame);
@@ -453,6 +495,7 @@ setTimeout(fitToScreen, 300); // 字型載入後再校正一次
 
 /* 設定按鈕：點擊直接開關設定視窗 */
 debugToggleBtn.addEventListener('click', () => {
+  if (running) return;   // 遊戲中不開設定（計時不會停）
   settingsOverlay.classList.toggle('hidden');
   if (!settingsOverlay.classList.contains('hidden')) {
     durationInput.value = CONFIG.gameSeconds;
@@ -523,6 +566,9 @@ applyDurationBtn.addEventListener('click', () => {
 /* ===== 背景音樂：載入時先嘗試播放；被瀏覽器擋下就等第一次有效互動再重試，成功才停止監聽 ===== */
 const BGM_UNLOCK_EVENTS = ['pointerup', 'click', 'touchend', 'keydown'];
 
+function addBgmUnlockListeners() {
+  BGM_UNLOCK_EVENTS.forEach(ev => document.addEventListener(ev, tryPlayBgm, true));
+}
 function removeBgmUnlockListeners() {
   BGM_UNLOCK_EVENTS.forEach(ev => document.removeEventListener(ev, tryPlayBgm, true));
 }
@@ -532,20 +578,22 @@ function tryPlayBgm() {
 
   const p = bgmAudio.play();
   if (p && typeof p.then === 'function') {
-    p.then(removeBgmUnlockListeners).catch(() => { /* 被擋下：保留監聽，下次互動再試 */ });
+    p.then(removeBgmUnlockListeners).catch(addBgmUnlockListeners);  // 被擋下：重新掛上監聽，下次互動再試
   }
 }
 
-BGM_UNLOCK_EVENTS.forEach(ev => document.addEventListener(ev, tryPlayBgm, true));
+addBgmUnlockListeners();
 window.addEventListener('load', tryPlayBgm);
 tryPlayBgm();
 
-/* 分頁被切到背景、鎖屏、切換 App 時暫停；回到前景時如果音樂設定是開啟的就恢復播放 */
+/* 分頁被切到背景、鎖屏、切換 App 時：音樂與遊戲一起暫停；回到前景時恢復（音樂需設定為開啟） */
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) {
     bgmAudio.pause();
+    pauseGame();
   } else {
     tryPlayBgm();
+    resumeGame();
   }
 });
 

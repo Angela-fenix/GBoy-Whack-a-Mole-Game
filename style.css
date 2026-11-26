@@ -1203,3 +1203,20 @@ button.ghost {
 /* 每一行都不自動換行：換行位置完全由 HTML 的 <br> 決定；方塊寬度跟著最長的那一行走 */
 .credit { white-space: nowrap; }
 .credit.corner { max-width: none; }
+
+/* ===== 手機連點防護：避免雙擊縮放、長按選取／跳出選單、圖片被拖曳 ===== */
+html, body, .board, .hole {
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+img {
+  -webkit-user-drag: none;
+  user-drag: none;
+}
+/* 設定視窗的輸入框仍要能輸入 */
+input {
+  -webkit-user-select: text;
+  user-select: text;
+}
